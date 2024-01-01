@@ -13,7 +13,7 @@
       <pubDate>Mon, 06 Nov 2023 22:54:46 -0800</pubDate>
       
       <guid>http://matrixstone.github.io/posts/openai-function-calling/</guid>
-      <description>Introduction to OpenAI Function Calling OpenAI rolled out a cool new feature called &amp;ldquo;Function Calling.&amp;rdquo; In coding, when you create a function, you usually have to list out the parameters (like integers, strings, enums) to pass to it. With &amp;ldquo;Function Calling,&amp;rdquo; you can now simply describe what you want and what action you want to take in plain language, and it will automatically figure them out and call the function for you.</description>
+      <description>Table of Contents Introduction to OpenAI Function Calling Open source Solution of Function Calling Model: Mistral-7B-Instruct-v0.1 Prompt Structure Issues to Improve Introduction to OpenAI Function Calling OpenAI rolled out a cool new feature called &amp;ldquo;Function Calling.&amp;rdquo; In coding, when you create a function, you usually have to list out the parameters (like integers, strings, enums) to pass to it. With &amp;ldquo;Function Calling,&amp;rdquo; you can now simply describe what you want and what action you want to take in plain language, and it will automatically figure them out and call the function for you.</description>
     </item>
     
     <item>
