@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Kafka | Matrix Engineering Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="Kafka Design Review Motiviation To improve one&rsquo;s ability in system design interviews, the best approach is to learn from modern industry services and examine their design considerations.
+Kafka is one of the most popular and well-designed examples. We can gain valuable insights from its considerations, which can enrich our knowledge and be applied during system design interviews.
+Overview Apache Kafka is a distributed event streaming platform designed for high-throughput, fault-tolerant, and real-time data streaming.">
+<meta name="author" content="">
+<link rel="canonical" href="http://matrixstone.github.io/posts/kafka/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.bccfefac377bc340f06c260aed1bddf49a4354816d7c570d6aac75a997986c95.css" integrity="sha256-vM/vrDd7w0DwbCYK7Rvd9JpDVIFtfFcNaqx1qZeYbJU=" rel="preload stylesheet" as="style">
+<script defer crossorigin="anonymous" src="/assets/js/highlight.f413e19d0714851f6474e7ee9632408e58ac146fbdbe62747134bea2fa3415e0.js" integrity="sha256-9BPhnQcUhR9kdOfuljJAjlisFG&#43;9vmJ0cTS&#43;ovo0FeA="
+    onload="hljs.initHighlightingOnLoad();"></script>
+<link rel="icon" href="http://matrixstone.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://matrixstone.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://matrixstone.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://matrixstone.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="http://matrixstone.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --hljs-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-7F1EZQ04MV"></script>
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){dataLayer.push(arguments);}
+	gtag('js', new Date());
+	gtag('config', 'G-7F1EZQ04MV', { 'anonymize_ip': false });
+}
+</script>
+<meta property="og:title" content="Kafka" />
+<meta property="og:description" content="Kafka Design Review Motiviation To improve one&rsquo;s ability in system design interviews, the best approach is to learn from modern industry services and examine their design considerations.
+Kafka is one of the most popular and well-designed examples. We can gain valuable insights from its considerations, which can enrich our knowledge and be applied during system design interviews.
+Overview Apache Kafka is a distributed event streaming platform designed for high-throughput, fault-tolerant, and real-time data streaming." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://matrixstone.github.io/posts/kafka/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2024-01-01T22:47:21-08:00" />
+<meta property="article:modified_time" content="2024-01-01T22:47:21-08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Kafka"/>
+<meta name="twitter:description" content="Kafka Design Review Motiviation To improve one&rsquo;s ability in system design interviews, the best approach is to learn from modern industry services and examine their design considerations.
+Kafka is one of the most popular and well-designed examples. We can gain valuable insights from its considerations, which can enrich our knowledge and be applied during system design interviews.
+Overview Apache Kafka is a distributed event streaming platform designed for high-throughput, fault-tolerant, and real-time data streaming."/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "http://matrixstone.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Kafka",
+      "item": "http://matrixstone.github.io/posts/kafka/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Kafka",
+  "name": "Kafka",
+  "description": "Kafka Design Review Motiviation To improve one\u0026rsquo;s ability in system design interviews, the best approach is to learn from modern industry services and examine their design considerations.\nKafka is one of the most popular and well-designed examples. We can gain valuable insights from its considerations, which can enrich our knowledge and be applied during system design interviews.\nOverview Apache Kafka is a distributed event streaming platform designed for high-throughput, fault-tolerant, and real-time data streaming.",
+  "keywords": [
+    
+  ],
+  "articleBody": "Kafka Design Review Motiviation To improve one’s ability in system design interviews, the best approach is to learn from modern industry services and examine their design considerations.\nKafka is one of the most popular and well-designed examples. We can gain valuable insights from its considerations, which can enrich our knowledge and be applied during system design interviews.\nOverview Apache Kafka is a distributed event streaming platform designed for high-throughput, fault-tolerant, and real-time data streaming. Its architecture is designed to handle large volumes of data, support high concurrency, and ensure data durability. The core concepts of Kafka’s architecture include Producers, Brokers, Topics, Partitions, and Consumers.\nKey Components Producers : Producers are responsible for publishing data to Kafka topics. They can be applications, servers, or devices that generate data. Producers send messages to Kafka brokers for further distribution. Messages are typically serialized data, such as JSON or Avro records.\nBrokers : Kafka brokers are the core components of a Kafka cluster. Brokers receive messages from producers, store them, and serve them to consumers. Kafka brokers are highly scalable, and a Kafka cluster can consist of multiple brokers. Each broker manages one or more partitions of Kafka topics.\nTopics: Topics are logical channels or categories for organizing data in Kafka. Producers write messages to specific topics, and consumers read messages from topics. Topics allow for the organization and segmentation of data streams. They are identified by a name and can have multiple partitions.\nPartitions: Each topic can be divided into multiple partitions. Partitions enable parallel processing and distribution of data within a Kafka cluster. Messages within a partition are ordered and have a unique offset. The number of partitions for a topic can be chosen based on the desired level of parallelism and scalability.\nConsumers: Consumers are applications or components that subscribe to Kafka topics and read messages from them. Kafka supports both single-consumer and consumer group models. In a consumer group, multiple consumers can work together to process messages in parallel, providing fault tolerance and load balancing.\nDesign Consideration Use the filesystem Kafka relies heavily on the filesystem for message storage and caching, challenging the perception that “disks are slow.”\nThe key point is to leverage linear reads and writes while avoiding random reads and writes.\nAs a result the performance of linear writes on a JBOD configuration with six 7200rpm SATA RAID-5 array is about 600MB/sec but the performance of random writes is only about 100k/sec—a difference of over 6000X. These linear reads and writes are the most predictable of all usage patterns, and are heavily optimized by the operating system.\nPagecache-centric design(rather than In-process In-memory Cache or JVM) JVM has issues:\nThe memory overhead of objects is very high, often doubling the size of the data stored (or worse). Java garbage collection becomes increasingly slow as the in-heap data increases. So benefits to use kernel page cache\nSize doubled: The page cache provides at least double the available cache by providing automatic access to all free memory, and likely double again by storing a compact byte structure rather than objects. Warm start: this cache will stay warm even if the service is restarted, whereas the in-process cache will need to be rebuilt in memory, which takes a long time. Coherency between cache and filesystem: This also greatly simplifies the code as all logic for maintaining coherency between the cache and filesystem is now in the OS, which tends to do so more efficiently and more correctly than one-off in-process attempts. Use persistent queue What a typical messaging system do A typical messaging system might use per-consumer queues with associated BTrees or similar data structures to maintain message metadata. BTrees are a versatile data structure available, and make it possible to support a wide variety of transactional and non-transactional semantics in the messaging system.\nHowever, disk seeks are slow. Disk seeks come at 10 ms a pop, and each disk can do only one seek at a time so parallelism is limited. Hence even a handful of disk seeks leads to very high overhead.\nSo combining BTree + disk seeks are slow when data grows rapidly.\nWhat does Kafka do Instead, a persistent queue could be built on simple reads and appends to files like you typically see with logging solutions. Then all operations are O(1) and reads do not block writes or each other.\nEfficiency Kafka is a multi-tenant system. There are two common causes of inefficiency in a multi-tenant system:\nExcessive byte copying Too many small I/O operations The next sections describe how Kafka avoids those two inefficiencies correspondingly. Avoids excessive byte copying Standardized binary message format: To avoid this, Kafka employs a standardized binary message format that is shared by the producer, broker, and the consumer so that data chunks are transferred without modification. Maintaining this common format allows optimization of the most important operation: network transfer of persistent log chunks. Modern unix operating systems offer a highly optimized code path for transferring data out of pagecache to a socket; in Linux this is done with the sendfile system call. zero-copy and pagecache: Using the zero-copy optimization offered by modern Unix and Linux operating sytems with the sendfile system call, data is copied into the pagecache exactly once and reused on each consumption instead of being stored in memory and copied out to user-space every time it is read. This enables messages to be consumed at a rate that approaches the limit of the network connection. Avoids small I/O operations Batch: To avoid this, the Kafka protocol is built around a “message set” abstraction that naturally groups messages together. This simple optimization increases speed by orders of magnitude. Batch compression: Efficient compression requires compressing batches of messages together rather than compressing each message individually. Kafka Producer Design Producer load balancing The client producer controls which partition it publishes messages. Also, the producer sends data directly to the broker that is the leader for a partition without any intervening routing tier. To help a producer do this, all Kafka nodes provide metadata that specifies the brokers that are alive, and the brokers that are leaders for the partitions of a topic. This enables a producer to appropriately route its requests.\nLoad balancing can be random, or you can apply a semantic partitioning function. You can specify a key to partition by, and Kafka uses that key to hash to a partition.\nBatching Batching enables efficiency, and to enable batching the Kafka producer tries to accumulate data in memory, and sends larger batches in a single request. The batching can be configured.\nKafka Consumer Design Kafka chose the pull mechanism. Some logging-centric systems, such as Scribe and Apache Flume, follow a very different push-based path where data is pushed downstream.\nPush VS Pull Disadvantage of Push\nOverwelming: difficulty dealing with diverse consumers because the broker would control the rate at which data is pushed. a consumer can get overwhelmed when its rate of consumption falls below the rate of production (similar to a denial of service attack). Advantage of Pull\nEnables the consumer to catch up when it can, if it falls behind production. Enables aggressive batching of data sent to the consumer. Disadvantage of Pull\nif the broker has no data the consumer may end up polling in a tight loop Kafka resolve this with long poll: To avoid this Kafka provides parameters in the pull requests that enable the consumer request to block in a “long poll”, waiting until data arrives. Consumer Position How typical message system stores consumer positions On the broker, as a message is handed to a consumer, the server either locally records that fact immediately or may wait for acknowledgement from the consumer.\nAdvantage: broker knows what is consumed it can immediately delete it, keeping its data size small.\nIssues:\nLose message: if broker deletes the message without consumer ack, it might lose message. consumed twice: First, if the consumer processes the message but fails before it can send an acknowledgement then the message will be consumed twice. Performance issue due to multiple states: The second problem is performance related. The broker must keep multiple states about every message. (first to lock`` it so it is not given out a second time, and then to mark it as permanently consumed` so that it can be removed) problems such as what do with messages that are sent but never acknowledged must be dealt with. Kafka Choice with Consumer Group Kafka handles this differently. An Kafka topic is divided into a set of ordered partitions, and consumer-design are grouped by a group ID. Each partition is consumed by exactly one consumer within each subscribing consumer group at any given time. This means that the position of a consumer in each partition is just a single integer, the offset of the next message to consume.\nA side benefit of this is that a consumer can deliberately rewind to an old offset and re-consume data. This violates the common contract of a queue but turns out to be an essential feature for many consumers.\nThe log end offset is the offset of the last message written to the log.\nThe high watermark is the offset of the last message that was successfully copied to all of the log’s replicas.\nFrom the perspective of the consumer, the main thing to know is that you can only read up to the high watermark. This prevents the consumer from reading unreplicated data which could later be lost.\nStatic membership Kafka’s group management protocol allows group members to provide persistent entity ids. Group membership remains unchanged based on those ids, thus no rebalance will be triggered.\nMessage Delivery Guarantees What is semantic guarantees you should also understand the semantic guarantees Apache Kafka® provides between the broker and producers and consumers. Semantic guarantee refers to how the broker, producer and consumer agree to share messages.\nThree types of message sharing At most once: Messages are delivered once, and if there is a system failure, messages may be lost and are not redelivered. At least once: This means messages are delivered one or more times. If there is a system failure, messages are never lost, but they may be delivered more than once. Exactly once: This is the preferred behavior in that each message is delivered once and only once. Messages are never lost or read twice even if some part of the system fails. Kafka can support all scenarios At most once Best latency but lose messages. For the lowest latency, messages can be sent asynchronously in a “fire and forget” way, meaning the producer does not wait for any acknowledgement that messages were received, At least once In this semantic, if a producer expects but fails to receive a response indicating that a message was committed, it will resend the message. Since 0.11.0.0, the Kafka producer also supports an idempotent delivery option which guarantees that resending will not result in duplicate entries in the log. To achieve this, the broker assigns each producer an ID and deduplicates messages using a sequence number that is sent by the producer along with every message. Exactly once higher latency, but the most durability. Starting with version 0.11.0.0, producers can utilize transactional delivery. This means a producer can request acknowledgment that messages were received and successfully replicated, and if it resends a message, it resends with idempotency, meaning existing messages are overwritten rather than duplicated. This comes with higher latency, but the most durability. Replication Under non-failure conditions, each partition in Kafka has a single leader and zero or more followers. In Kafka, all topics must have a replication factor configuration value. The replication factor includes the total number of replicas including the leader, which means that topics with a replication factor of one (1) are topics that are not replicated.\nAll reads and writes go to the leader of the partition.\nAuto Failover As for a replicated system, auto failover is a big scenarios to talk about.\nAlive As with most distributed systems, automatically handling failures requires a precise definition of what it means for a node to be “alive.” In Kafka, a special node known as the “controller” is responsible for managing the registration of brokers in the cluster.\nFor Kafka node to be considered alive, it has to meet two conditions:\nA node must be able to maintain its session with the controller What is meant by an “active session” depends on the cluster configuration. For KRaft clusters, an active session is maintained by sending periodic heartbeats to the controller. If it is a follower it must replicate the writes happening on the leader and not fall “too far” behind. The replica.lag.time.max.ms configuration specifies what replicas are considered stuck or lagging. -These nodes are called “in sync” versus “alive” or “failed”. The leader keeps track of the set of in-sync nodes. If a follower fails, gets stuck, or falls behind, the leader will remove it from the list of in-sync replicas Note that topics have a setting for the “minimum number” of in-sync replicas that is checked when the producer requests acknowledgment that a message has been written to the full set of in-sync replicas.\nReplicated logs: quorums, ISRs, and state machines What is Quorum The fundamental guarantee a log replication algorithm provides is that if we tell a client a message is committed, and the leader fails, the newly-elected leader must also have that message. This results in a ** latency and consistency tradeoff**: if the leader waits for more followers to acknowledge a message before declaring it committed, then there are more electable leaders.\nIf you choose the number of acknowledgements required and the number of logs that must be compared to elect a leader such that there is guaranteed to be an overlap, then this is called a Quorum.\nMajority Vote: common approach to select quorum What is majority vote Let’s say we have 2f+1 replicas. If f+1 replicas must receive a message prior to a commit being declared by the leader, and if we elect a new leader by electing the follower with the most complete log from at least f+1 replicas, then, with no more than f failures, the leader is guaranteed to have all committed messages.\nDisadvantage\nA downside of majority vote is that the majority of nodes must be running to tolerate a failure. With majority vote, tolerating one failure requires three copies of the data, tolerating two failures requires five copies of the data. Advantage\nHowever, majority vote has a nice property: latency depends on only the fastest servers. That is, if the replication factor is three, the latency is determined by the faster follower not the slower one. Kafka chooses the ISR approach Kafka running with ZooKeeper takes a slightly different approach to choosing its quorum set. Instead of majority vote, Kafka dynamically maintains a set of in-sync replicas (ISR) that are caught-up to the leader. Only members of this set are eligible for election as leader. A write to a Kafka partition is not considered committed until all in-sync replicas have received the write. This ISR set is persisted to Zookeeper whenever it changes, and any replica in the ISR is eligible to be elected leader. This is an important factor for Kafka’s usage model where there are many partitions and ensuring leadership balance is important. With this ISR model and f+1 replicas, a Kafka topic can tolerate f failures without losing committed messages.\nFor example, to survive one failure:\nA majority vote quorum needs three replicas and one acknowledgement The ISR approach requires two replicas and one acknowledgement\nThe ability to commit without the slowest servers is an advantage of the majority vote approach.\nUnclean Leader Election And Partition Loss If all of the replicas die, There are two possible behaviors:\n· Wait for a replica in the ISR to come back to life and choose this replica as the leader with the hope it retains all of its data. · Choose the first replica (not necessarily in the ISR) that comes back to life as the leader.\nThis is a simple tradeoff between availability and consistency. Default is option 1.\nBroker Controller The leadership election process is the critical window of unavailability, and must be optimized. To accomplish this, one of the brokers is elected as the “controller”. This controller detects failures at the broker level and changes the leader of all affected partitions when a broker fails.\nLog Compaction What is Log Compaction Log compaction guarantees that the latest value for each message key is always retained within the log of data\nAdvanage Making it ideal for use cases such as restoring state after system failure or reloading caches after application restarts.\nLog compaction provides a granular retention mechanism so at least the last update for each primary key is retained. This guarantees that the log contains a full snapshot of the final value for every key, not just keys that changed recently.\nLog compaction is a mechanism to provide finer-grained per-record retention instead of coarser-grained time-based retention.\nThis retention policy can be set per-topic, so a single cluster can have some topics where retention is enforced by size or time and other topics where retention is enforced by compaction.\nTombstone: compaction enables deletes Compaction also enables deletes. A message with a key and a null payload will be treated as a delete from the log, and is sometimes called a tombstone. This delete marker will cause any prior or new message with that key to be removed.\n",
+  "wordCount" : "2918",
+  "inLanguage": "en",
+  "datePublished": "2024-01-01T22:47:21-08:00",
+  "dateModified": "2024-01-01T22:47:21-08:00",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http://matrixstone.github.io/posts/kafka/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Matrix Engineering Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http://matrixstone.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://matrixstone.github.io/" accesskey="h" title="Matrix Engineering Blog (Alt + H)">Matrix Engineering Blog</a>
+                    <div class="logo-switches">
+                        <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                            <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                            </svg>
+                            <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="5"></circle>
+                                <line x1="12" y1="1" x2="12" y2="3"></line>
+                                <line x1="12" y1="21" x2="12" y2="23"></line>
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                                <line x1="1" y1="12" x2="3" y2="12"></line>
+                                <line x1="21" y1="12" x2="23" y2="12"></line>
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                            </svg>
+                        </button>
+                    </div>
+        </div>
+        <ul id="menu">
+        </ul>
+    </nav>
+</header><main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title">
+      Kafka
+    </h1>
+    <div class="post-meta"><span title='2024-01-01 22:47:21 -0800 PST'>January 1, 2024</span>
+
+</div>
+  </header> 
+  <div class="post-content"><h1 id="kafka-design-review">Kafka Design Review<a hidden class="anchor" aria-hidden="true" href="#kafka-design-review">#</a></h1>
+<h2 id="motiviation">Motiviation<a hidden class="anchor" aria-hidden="true" href="#motiviation">#</a></h2>
+<p>To improve one&rsquo;s ability in system design interviews, the best approach is to learn from modern industry services and examine their design considerations.</p>
+<p>Kafka is one of the most popular and well-designed examples. We can gain valuable insights from its considerations, which can enrich our knowledge and be applied during system design interviews.</p>
+<h2 id="overview">Overview<a hidden class="anchor" aria-hidden="true" href="#overview">#</a></h2>
+<p>Apache Kafka is a distributed event streaming platform designed for high-throughput, fault-tolerant, and real-time data streaming. Its architecture is designed to handle large volumes of data, support high concurrency, and ensure data durability. The core concepts of Kafka&rsquo;s architecture include Producers, Brokers, Topics, Partitions, and Consumers.</p>
+<h2 id="key-components">Key Components<a hidden class="anchor" aria-hidden="true" href="#key-components">#</a></h2>
+<ol>
+<li>
+<p><strong>Producers</strong>
+: Producers are responsible for publishing data to Kafka topics. They can be applications, servers, or devices that generate data. Producers send messages to Kafka brokers for further distribution. Messages are typically serialized data, such as JSON or Avro records.</p>
+</li>
+<li>
+<p><strong>Brokers</strong>
+: Kafka brokers are the core components of a Kafka cluster. Brokers receive messages from producers, store them, and serve them to consumers. Kafka brokers are highly scalable, and a Kafka cluster can consist of multiple brokers. Each broker manages one or more partitions of Kafka topics.</p>
+</li>
+<li>
+<p><strong>Topics</strong>: Topics are logical channels or categories for organizing data in Kafka. Producers write messages to specific topics, and consumers read messages from topics. Topics allow for the organization and segmentation of data streams. They are identified by a name and can have multiple partitions.</p>
+</li>
+<li>
+<p><strong>Partitions</strong>: Each topic can be divided into multiple partitions. Partitions enable parallel processing and distribution of data within a Kafka cluster. Messages within a partition are ordered and have a unique offset. The number of partitions for a topic can be chosen based on the desired level of parallelism and scalability.</p>
+</li>
+<li>
+<p><strong>Consumers</strong>: Consumers are applications or components that subscribe to Kafka topics and read messages from them. Kafka supports both single-consumer and consumer group models. In a consumer group, multiple consumers can work together to process messages in parallel, providing fault tolerance and load balancing.</p>
+</li>
+</ol>
+<h2 id="design-consideration">Design Consideration<a hidden class="anchor" aria-hidden="true" href="#design-consideration">#</a></h2>
+<h3 id="use-the-filesystem">Use the filesystem<a hidden class="anchor" aria-hidden="true" href="#use-the-filesystem">#</a></h3>
+<p>Kafka relies heavily on the filesystem for message storage and caching, challenging the perception that &ldquo;disks are slow.&rdquo;</p>
+<p>The key point is to leverage <strong>linear reads and writes while avoiding random reads and writes</strong>.</p>
+<p>As a result the performance of linear writes on a JBOD configuration with six 7200rpm SATA RAID-5 array is about 600MB/sec but the performance of random writes is only about 100k/sec—a difference of over 6000X. These linear reads and writes are the most predictable of all usage patterns, and are heavily optimized by the operating system.</p>
+<p><img loading="lazy" src="/assets/images/random.png" alt="Disk faster than RAM!"  title="Disk faster than RAM"  />
+</p>
+<h2 id="pagecache-centric-designrather-than-in-process-in-memory-cache-or-jvm">Pagecache-centric design(rather than In-process In-memory Cache or JVM)<a hidden class="anchor" aria-hidden="true" href="#pagecache-centric-designrather-than-in-process-in-memory-cache-or-jvm">#</a></h2>
+<p>JVM has issues:</p>
+<ul>
+<li>The memory overhead of objects is very high, often doubling the size of the data stored (or worse).</li>
+<li>Java garbage collection becomes increasingly slow as the in-heap data increases.</li>
+</ul>
+<p>So benefits to use kernel page cache</p>
+<ul>
+<li><strong>Size doubled</strong>: The page cache provides at least double the available cache by providing automatic access to all free memory, and likely double again by storing a compact byte structure rather than objects.</li>
+<li><strong>Warm start</strong>: this cache will stay warm even if the service is restarted, whereas the in-process cache will need to be rebuilt in memory, which takes a long time.</li>
+<li><strong>Coherency between cache and filesystem</strong>: This also greatly simplifies the code as all logic for maintaining coherency between the cache and filesystem is now in the OS, which tends to do so more efficiently and more correctly than one-off in-process attempts.</li>
+</ul>
+<h2 id="use-persistent-queue">Use persistent queue<a hidden class="anchor" aria-hidden="true" href="#use-persistent-queue">#</a></h2>
+<h3 id="what-a-typical-messaging-system-do">What a typical messaging system do<a hidden class="anchor" aria-hidden="true" href="#what-a-typical-messaging-system-do">#</a></h3>
+<p>A typical messaging system might use per-consumer queues with associated <strong>BTrees</strong> or similar data structures to maintain message metadata. BTrees are a versatile data structure available, and make it possible to support a wide variety of transactional and non-transactional semantics in the messaging system.</p>
+<p><strong>However, disk seeks are slow.</strong> Disk seeks come at 10 ms a pop, and each disk can do only one seek at a time so parallelism is limited. Hence even a handful of disk seeks leads to very high overhead.</p>
+<p>So combining BTree + disk seeks are slow when data grows rapidly.</p>
+<h3 id="what-does-kafka-do">What does Kafka do<a hidden class="anchor" aria-hidden="true" href="#what-does-kafka-do">#</a></h3>
+<p>Instead, a persistent queue could be built on simple reads and appends to files like you typically see with logging solutions. Then all operations are O(1) and reads do not block writes or each other.</p>
+<h2 id="efficiency">Efficiency<a hidden class="anchor" aria-hidden="true" href="#efficiency">#</a></h2>
+<p>Kafka is a multi-tenant system. There are two common causes of inefficiency in a multi-tenant system:</p>
+<ul>
+<li>Excessive byte copying</li>
+<li>Too many small I/O operations
+The next sections describe how Kafka avoids those two inefficiencies correspondingly.</li>
+</ul>
+<h3 id="avoids-excessive-byte-copying">Avoids excessive byte copying<a hidden class="anchor" aria-hidden="true" href="#avoids-excessive-byte-copying">#</a></h3>
+<ul>
+<li><strong>Standardized binary message format</strong>: To avoid this, Kafka employs a standardized binary message format that is shared by the producer, broker, and the consumer so that data chunks are transferred without modification.
+<ul>
+<li>Maintaining this common format allows optimization of the most important operation: network transfer of persistent log chunks. Modern unix operating systems offer a highly optimized code path for transferring data out of pagecache to a socket; in Linux this is done with the sendfile system call.</li>
+</ul>
+</li>
+<li><strong>zero-copy and pagecache</strong>: Using the zero-copy optimization offered by modern Unix and Linux operating sytems with the sendfile system call, data is copied into the pagecache exactly once and reused on each consumption instead of being stored in memory and copied out to user-space every time it is read. This enables messages to be consumed at a rate that approaches the limit of the network connection.</li>
+</ul>
+<h3 id="avoids-small-io-operations">Avoids small I/O operations<a hidden class="anchor" aria-hidden="true" href="#avoids-small-io-operations">#</a></h3>
+<ul>
+<li><strong>Batch</strong>: To avoid this, the Kafka protocol is built around a <strong>“message set”</strong> abstraction that naturally groups messages together. This simple optimization increases speed by orders of magnitude.</li>
+<li><strong>Batch compression</strong>: Efficient compression requires compressing batches of messages together rather than compressing each message individually.</li>
+</ul>
+<h2 id="kafka-producer-design">Kafka Producer Design<a hidden class="anchor" aria-hidden="true" href="#kafka-producer-design">#</a></h2>
+<h3 id="producer-load-balancing">Producer load balancing<a hidden class="anchor" aria-hidden="true" href="#producer-load-balancing">#</a></h3>
+<p>The client producer controls which partition it publishes messages. Also, the producer sends data directly to the broker that is the leader for a partition without any intervening routing tier. To help a producer do this, <strong>all Kafka nodes provide metadata that specifies the brokers that are alive, and the brokers that are leaders for the partitions of a topic</strong>. This enables a producer to appropriately route its requests.</p>
+<p>Load balancing can be random, or you can apply a semantic partitioning function. You can specify a key to partition by, and Kafka uses that key to hash to a partition.</p>
+<h3 id="batching">Batching<a hidden class="anchor" aria-hidden="true" href="#batching">#</a></h3>
+<p>Batching enables efficiency, and to enable batching the <strong>Kafka producer tries to accumulate data in memory, and sends larger batches in a single request.</strong> The batching can be configured.</p>
+<h2 id="kafka-consumer-design">Kafka Consumer Design<a hidden class="anchor" aria-hidden="true" href="#kafka-consumer-design">#</a></h2>
+<p>Kafka chose the pull mechanism. Some logging-centric systems, such as Scribe and Apache Flume, follow a very different push-based path where data is pushed downstream.</p>
+<h3 id="push-vs-pull">Push VS Pull<a hidden class="anchor" aria-hidden="true" href="#push-vs-pull">#</a></h3>
+<p>Disadvantage of Push</p>
+<ul>
+<li><strong>Overwelming</strong>: difficulty dealing with diverse consumers because the broker would control the rate at which data is pushed. a consumer can get overwhelmed when its rate of consumption falls below the rate of production (similar to a denial of service attack).</li>
+</ul>
+<p>Advantage of Pull</p>
+<ul>
+<li>Enables the consumer to catch up when it can, if it falls behind production.</li>
+<li>Enables aggressive batching of data sent to the consumer.</li>
+</ul>
+<p>Disadvantage of Pull</p>
+<ul>
+<li>if the broker has no data the consumer may end up polling in a tight loop
+<ul>
+<li>Kafka resolve this with <code>long poll</code>: To avoid this Kafka provides parameters in the pull requests that enable the consumer request to block in a “long poll”, waiting until data arrives.</li>
+</ul>
+</li>
+</ul>
+<h3 id="consumer-position">Consumer Position<a hidden class="anchor" aria-hidden="true" href="#consumer-position">#</a></h3>
+<h4 id="how-typical-message-system-stores-consumer-positions">How typical message system stores consumer positions<a hidden class="anchor" aria-hidden="true" href="#how-typical-message-system-stores-consumer-positions">#</a></h4>
+<p>On the broker, as a message is handed to a consumer, the server either locally records that fact immediately or may wait for acknowledgement from the consumer.</p>
+<p>Advantage: broker knows what is consumed it can immediately delete it, keeping its data size small.</p>
+<p>Issues:</p>
+<ul>
+<li>Lose message: if broker deletes the message without consumer ack, it might lose message.</li>
+<li>consumed twice: First, if the consumer processes the message but fails before it can send an acknowledgement then the message will be consumed twice.</li>
+<li>Performance issue due to multiple states: The second problem is performance related. The broker must keep multiple states about every message. (first to <code>lock`` it so it is not given out a second time, and then to mark it as </code>permanently consumed` so that it can be removed)</li>
+<li>problems such as what do with messages that are sent but never acknowledged must be dealt with.</li>
+</ul>
+<h4 id="kafka-choice-with-consumer-group">Kafka Choice with Consumer Group<a hidden class="anchor" aria-hidden="true" href="#kafka-choice-with-consumer-group">#</a></h4>
+<p><img loading="lazy" src="/assets/images/kafka-consumer-group.png" alt="Kafka Consumer Group!"  title="Kafka Consumer Group"  />
+
+Kafka handles this differently. An Kafka topic is divided into a set of ordered partitions, and consumer-design are grouped by a group ID. Each partition is consumed by exactly one consumer within each subscribing consumer group at any given time. This means that the position of a consumer in each partition is just a single integer, the offset of the next message to consume.</p>
+<p>A side benefit of this is that a <strong>consumer can deliberately rewind to an old offset and re-consume data.</strong> This violates the common contract of a queue but turns out to be an essential feature for many consumers.</p>
+<p><img loading="lazy" src="/assets/images/kafka-position.jpg" alt="Kafka Position!"  title="Kafka Position"  />
+</p>
+<p>The log end offset is the offset of the last message written to the log.</p>
+<p>The high watermark is the offset of the last message that was successfully copied to all of the log’s replicas.</p>
+<p>From the perspective of the consumer, the main thing to know is that you can only read up to the high watermark. This prevents the consumer from reading unreplicated data which could later be lost.</p>
+<h4 id="static-membership">Static membership<a hidden class="anchor" aria-hidden="true" href="#static-membership">#</a></h4>
+<p>Kafka’s group management protocol allows group members to provide persistent entity ids. Group membership remains unchanged based on those ids, thus no rebalance will be triggered.</p>
+<h2 id="message-delivery-guarantees">Message Delivery Guarantees<a hidden class="anchor" aria-hidden="true" href="#message-delivery-guarantees">#</a></h2>
+<h3 id="what-is-semantic-guarantees">What is semantic guarantees<a hidden class="anchor" aria-hidden="true" href="#what-is-semantic-guarantees">#</a></h3>
+<p>you should also understand the semantic guarantees Apache Kafka® provides between the broker and producers and consumers. <strong>Semantic guarantee refers to how the broker, producer and consumer agree to share messages.</strong></p>
+<h3 id="three-types-of-message-sharing">Three types of message sharing<a hidden class="anchor" aria-hidden="true" href="#three-types-of-message-sharing">#</a></h3>
+<ul>
+<li><strong>At most once</strong>: Messages are delivered once, and if there is a system failure, messages may be lost and are not redelivered.</li>
+<li><strong>At least once</strong>: This means messages are delivered one or more times. If there is a system failure, messages are never lost, but they may be delivered more than once.</li>
+<li><strong>Exactly once</strong>: This is the preferred behavior in that each message is delivered once and only once. Messages are never lost or read twice even if some part of the system fails.</li>
+</ul>
+<h3 id="kafka-can-support-all-scenarios">Kafka can support all scenarios<a hidden class="anchor" aria-hidden="true" href="#kafka-can-support-all-scenarios">#</a></h3>
+<ul>
+<li><strong>At most once</strong>
+<ul>
+<li><strong>Best latency but lose messages.</strong></li>
+<li>For the lowest latency, messages can be sent asynchronously in a “fire and forget” way, meaning the producer does not wait for any acknowledgement that messages were received,</li>
+</ul>
+</li>
+<li><strong>At least once</strong>
+<ul>
+<li>In this semantic, if a producer expects but fails to receive a response indicating that a message was committed, it will resend the message.</li>
+<li>Since 0.11.0.0, the Kafka producer also supports an <strong>idempotent delivery</strong> option which guarantees that resending will not result in duplicate entries in the log. To achieve this, the broker assigns each <strong>producer an ID and deduplicates messages using a sequence number</strong> that is sent by the producer along with every message.</li>
+</ul>
+</li>
+<li><strong>Exactly once</strong>
+<ul>
+<li><strong>higher latency, but the most durability.</strong></li>
+<li>Starting with version 0.11.0.0, producers can utilize <strong>transactional delivery</strong>. This means a producer can request acknowledgment that messages were received and successfully replicated, and if it resends a message, it resends with <strong>idempotency</strong>, meaning existing messages are overwritten rather than duplicated. This comes with higher latency, but the most durability.</li>
+</ul>
+</li>
+</ul>
+<h2 id="replication">Replication<a hidden class="anchor" aria-hidden="true" href="#replication">#</a></h2>
+<p>Under non-failure conditions, each partition in Kafka has <strong>a single leader and zero or more followers.</strong> In Kafka, all topics must have a <strong>replication factor</strong> configuration value. The replication factor includes the total number of replicas including the leader, which means that topics with a replication factor of one (1) are topics that are not replicated.</p>
+<p><strong>All reads and writes go to the leader of the partition.</strong></p>
+<h3 id="auto-failover">Auto Failover<a hidden class="anchor" aria-hidden="true" href="#auto-failover">#</a></h3>
+<p>As for a replicated system, auto failover is a big scenarios to talk about.</p>
+<h4 id="alive">Alive<a hidden class="anchor" aria-hidden="true" href="#alive">#</a></h4>
+<p>As with most distributed systems, automatically handling failures requires a precise definition of what it means for a node to be &ldquo;alive.&rdquo; In Kafka, <strong>a special node known as the &ldquo;controller&rdquo; is responsible for managing the registration of brokers in the cluster.</strong></p>
+<p>For Kafka node to be considered alive, it has to meet two conditions:</p>
+<ul>
+<li>A node must be able to maintain its session with the controller
+<ul>
+<li>What is meant by an &ldquo;active session&rdquo; depends on the cluster configuration. For KRaft clusters, an active session is maintained by <strong>sending periodic heartbeats</strong> to the controller.</li>
+</ul>
+</li>
+<li>If it is a follower it must replicate the writes happening on the leader and not fall “too far” behind.
+<ul>
+<li>The <strong>replica.lag.time.max.ms</strong> configuration specifies what replicas are considered stuck or lagging.
+-These nodes are called “in sync” versus “alive” or “failed”. The leader keeps track of the set of in-sync nodes. If a follower fails, gets stuck, or falls behind, the leader will remove it from the list of in-sync replicas</li>
+</ul>
+</li>
+</ul>
+<p>Note that topics have a setting for the <strong>&ldquo;minimum number&rdquo;</strong> of in-sync replicas that is checked when the producer requests acknowledgment that a message has been written to the full set of in-sync replicas.</p>
+<h2 id="replicated-logs-quorums-isrs-and-state-machines">Replicated logs: quorums, ISRs, and state machines<a hidden class="anchor" aria-hidden="true" href="#replicated-logs-quorums-isrs-and-state-machines">#</a></h2>
+<h3 id="what-is-quorum">What is Quorum<a hidden class="anchor" aria-hidden="true" href="#what-is-quorum">#</a></h3>
+<p>The fundamental guarantee a log replication algorithm provides is that <strong>if we tell a client a message is committed, and the leader fails, the newly-elected leader must also have that message.</strong> This results in a ** latency and consistency tradeoff**: if the leader waits for more followers to acknowledge a message before declaring it committed, then there are more electable leaders.</p>
+<p>If you choose the number of acknowledgements required and the number of logs that must be compared to elect a leader such that there is guaranteed to be an overlap, then this is called a Quorum.</p>
+<h3 id="majority-vote-common-approach-to-select-quorum">Majority Vote: common approach to select quorum<a hidden class="anchor" aria-hidden="true" href="#majority-vote-common-approach-to-select-quorum">#</a></h3>
+<h4 id="what-is-majority-vote">What is majority vote<a hidden class="anchor" aria-hidden="true" href="#what-is-majority-vote">#</a></h4>
+<p>Let&rsquo;s say we have 2f+1 replicas. If f+1 replicas must receive a message prior to a commit being declared by the leader, and if we elect a new leader by electing the follower with the most complete log from at least f+1 replicas, then, with no more than f failures, the leader is guaranteed to have all committed messages.</p>
+<p>Disadvantage</p>
+<ul>
+<li>A downside of majority vote is that the <strong>majority of nodes must be running to tolerate a failure.</strong> With majority vote, tolerating one failure requires three copies of the data, tolerating two failures requires five copies of the data.</li>
+</ul>
+<p>Advantage</p>
+<ul>
+<li>However, majority vote has a nice property: <strong>latency depends on only the fastest servers.</strong> That is, if the replication factor is three, the latency is determined by the faster follower not the slower one.</li>
+</ul>
+<h3 id="kafka-chooses-the-isr-approach">Kafka chooses the ISR approach<a hidden class="anchor" aria-hidden="true" href="#kafka-chooses-the-isr-approach">#</a></h3>
+<p>Kafka running with ZooKeeper takes a slightly different approach to choosing its quorum set. Instead of majority vote, <strong>Kafka dynamically maintains a set of in-sync replicas (ISR)</strong> that are caught-up to the leader. Only members of this set are eligible for election as leader. <strong>A write to a Kafka partition is not considered committed until all in-sync replicas have received the write.</strong> This ISR set is persisted to Zookeeper whenever it changes, and any replica in the ISR is eligible to be elected leader. This is an important factor for Kafka’s usage model where there are many partitions and ensuring leadership balance is important. <strong>With this ISR model and f+1 replicas, a Kafka topic can tolerate f failures without losing committed messages.</strong></p>
+<p>For example, to survive one failure:</p>
+<p>A majority vote quorum needs three replicas and one acknowledgement
+The ISR approach requires two replicas and one acknowledgement</p>
+<p>The ability to commit without the slowest servers is an advantage of the majority vote approach.</p>
+<h3 id="unclean-leader-election-and-partition-loss">Unclean Leader Election And Partition Loss<a hidden class="anchor" aria-hidden="true" href="#unclean-leader-election-and-partition-loss">#</a></h3>
+<p>If all of the replicas die, There are two possible behaviors:</p>
+<p>· Wait for a replica in the ISR to come back to life and choose this replica as the leader with the hope it retains all of its data.
+· Choose the first replica (not necessarily in the ISR) that comes back to life as the leader.</p>
+<p>This is a simple tradeoff between availability and consistency. Default is option 1.</p>
+<h3 id="broker-controller">Broker Controller<a hidden class="anchor" aria-hidden="true" href="#broker-controller">#</a></h3>
+<p>The leadership election process is the critical window of unavailability, and must be optimized. To accomplish this, <strong>one of the brokers is elected as the “controller”.</strong> This controller detects failures at the broker level and changes the leader of all affected partitions when a broker fails.</p>
+<h2 id="log-compaction">Log Compaction<a hidden class="anchor" aria-hidden="true" href="#log-compaction">#</a></h2>
+<p><img loading="lazy" src="/assets/images/kafka-compaction.png" alt="Kafka Compaction!"  title="Kafka Compaction"  />
+</p>
+<h2 id="what-is-log-compaction">What is Log Compaction<a hidden class="anchor" aria-hidden="true" href="#what-is-log-compaction">#</a></h2>
+<p>Log compaction guarantees that the latest value for each message key is always retained within the log of data</p>
+<h2 id="advanage">Advanage<a hidden class="anchor" aria-hidden="true" href="#advanage">#</a></h2>
+<p><strong>Making it ideal for use cases such as restoring state after system failure or reloading caches after application restarts.</strong></p>
+<p>Log compaction provides a granular retention mechanism so at least the last update for each primary key is retained.
+<strong>This guarantees that the log contains a full snapshot of the final value for every key, not just keys that changed recently.</strong></p>
+<p>Log compaction is a mechanism to provide finer-grained per-record retention instead of coarser-grained time-based retention.</p>
+<p>This retention policy can be set per-topic, so a single cluster can have some topics where retention is <strong>enforced by size or time and other topics where retention is enforced by compaction.</strong></p>
+<h2 id="tombstone-compaction-enables-deletes">Tombstone: compaction enables deletes<a hidden class="anchor" aria-hidden="true" href="#tombstone-compaction-enables-deletes">#</a></h2>
+<p>Compaction also enables deletes. <strong>A message with a key and a null payload will be treated as a delete from the log, and is sometimes called a tombstone.</strong> This delete marker will cause any prior or new message with that key to be removed.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2024 <a href="http://matrixstone.github.io/">Matrix Engineering Blog</a></span>
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>
